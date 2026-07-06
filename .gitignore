@@ -9,3 +9,6 @@ dist
 # Business documents (not part of the app)
 *.docx
 *.pptx
+
+# Local tool state
+.claude/settings.local.json
