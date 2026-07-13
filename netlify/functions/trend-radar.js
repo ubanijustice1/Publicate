@@ -1,4 +1,4 @@
-import { getUserFromRequest, getProfile, consumeCredit, logGeneration } from './_supabaseAdmin.js'
+import { getUserFromRequest, getProfile, consumeCredit, logGeneration, capString } from './_supabaseAdmin.js'
 import { callOpenAI } from './_openai.js'
 
 export const handler = async (event) => {
@@ -18,7 +18,7 @@ export const handler = async (event) => {
       }
     }
 
-    const { niche } = JSON.parse(event.body || '{}')
+    const niche = capString(JSON.parse(event.body || '{}').niche, 60)
     if (!niche) {
       return { statusCode: 400, body: JSON.stringify({ error: 'Niche is required.' }) }
     }
@@ -36,12 +36,12 @@ Surface 6 trending topics/ideas this creator can act on immediately.`
 
     const result = await callOpenAI({ system, user: user_prompt, maxTokens: 1200 })
 
-    await consumeCredit(user.id, profile.ai_credits)
+    const remaining = await consumeCredit(user.id)
     await logGeneration(user.id, 'trend', { niche }, result)
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ ...result, creditsRemaining: profile.ai_credits - 1 }),
+      body: JSON.stringify({ ...result, creditsRemaining: Math.max(remaining, 0) }),
     }
   } catch (err) {
     return { statusCode: 500, body: JSON.stringify({ error: err.message || 'Unexpected error' }) }

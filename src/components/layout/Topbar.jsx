@@ -25,7 +25,7 @@ export default function Topbar({ onMenuClick, title }) {
   const initials = (profile?.full_name || user?.email || '?').slice(0, 1).toUpperCase()
 
   return (
-    <header className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-100 bg-white/80 px-4 py-3.5 backdrop-blur lg:px-8">
+    <header className="z-20 flex items-center justify-between px-4 py-4 lg:px-8">
       <div className="flex items-center gap-3">
         <button className="text-slate-500 lg:hidden" onClick={onMenuClick}>
           <Menu className="h-6 w-6" />
@@ -34,7 +34,7 @@ export default function Topbar({ onMenuClick, title }) {
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="hidden items-center gap-1.5 rounded-full bg-primary-50 px-3 py-1.5 text-xs font-semibold text-primary-700 sm:flex">
+        <div className="hidden items-center gap-1.5 rounded-full bg-white px-3.5 py-2 text-xs font-semibold text-primary-700 shadow-card sm:flex">
           <Sparkles className="h-3.5 w-3.5" />
           {profile?.ai_credits ?? 0} AI credits
         </div>
@@ -42,7 +42,7 @@ export default function Topbar({ onMenuClick, title }) {
         <div className="relative" ref={menuRef}>
           <button
             onClick={() => setMenuOpen((o) => !o)}
-            className="flex items-center gap-2 rounded-xl px-2 py-1.5 hover:bg-slate-50"
+            className="flex items-center gap-2 rounded-2xl bg-white px-2 py-1.5 shadow-card hover:bg-slate-50"
           >
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 text-sm font-semibold text-primary-700">
               {initials}
@@ -51,7 +51,7 @@ export default function Topbar({ onMenuClick, title }) {
           </button>
 
           {menuOpen && (
-            <div className="absolute right-0 mt-2 w-52 rounded-xl border border-slate-100 bg-white py-1.5 shadow-card">
+            <div className="absolute right-0 mt-2 w-52 rounded-2xl bg-white py-1.5 shadow-float">
               <div className="border-b border-slate-100 px-3.5 py-2.5">
                 <p className="truncate text-sm font-medium text-slate-900">
                   {profile?.full_name || 'Your account'}

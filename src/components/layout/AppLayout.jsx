@@ -20,11 +20,11 @@ export default function AppLayout() {
   const title = TITLES[location.pathname] || 'Publicate'
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
+    <div className="flex h-screen overflow-hidden">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar onMenuClick={() => setSidebarOpen(true)} title={title} />
-        <main className="flex-1 overflow-y-auto px-4 py-6 lg:px-8">
+        <main className="flex-1 overflow-y-auto px-4 pb-8 pt-2 lg:px-8">
           <Outlet />
         </main>
       </div>

@@ -1,4 +1,4 @@
-import { getUserFromRequest, getProfile, consumeCredit, logGeneration } from './_supabaseAdmin.js'
+import { getUserFromRequest, getProfile, consumeCredit, logGeneration, capString } from './_supabaseAdmin.js'
 import { callOpenAI } from './_openai.js'
 
 export const handler = async (event) => {
@@ -18,7 +18,11 @@ export const handler = async (event) => {
       }
     }
 
-    const { platform, niche, topic, tone } = JSON.parse(event.body || '{}')
+    const body = JSON.parse(event.body || '{}')
+    const platform = capString(body.platform, 20)
+    const niche = capString(body.niche, 60)
+    const topic = capString(body.topic, 500)
+    const tone = capString(body.tone, 40)
     if (!platform || !niche || !topic) {
       return { statusCode: 400, body: JSON.stringify({ error: 'Platform, niche and topic are required.' }) }
     }
@@ -39,12 +43,12 @@ Write a caption package for this post.`
 
     const result = await callOpenAI({ system, user: user_prompt, maxTokens: 700 })
 
-    await consumeCredit(user.id, profile.ai_credits)
+    const remaining = await consumeCredit(user.id)
     await logGeneration(user.id, 'caption', { platform, niche, topic, tone }, result)
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ ...result, creditsRemaining: profile.ai_credits - 1 }),
+      body: JSON.stringify({ ...result, creditsRemaining: Math.max(remaining, 0) }),
     }
   } catch (err) {
     return { statusCode: 500, body: JSON.stringify({ error: err.message || 'Unexpected error' }) }

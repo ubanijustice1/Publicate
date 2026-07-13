@@ -36,7 +36,8 @@ export default {
       },
       boxShadow: {
         soft: '0 2px 10px 0 rgba(30, 41, 59, 0.06)',
-        card: '0 1px 3px 0 rgba(30, 41, 59, 0.08), 0 1px 2px -1px rgba(30, 41, 59, 0.06)',
+        card: '0 6px 24px -8px rgba(30, 41, 59, 0.1)',
+        float: '0 12px 40px -12px rgba(30, 41, 59, 0.18)',
       },
       borderRadius: {
         xl: '0.875rem',

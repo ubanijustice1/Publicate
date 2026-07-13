@@ -33,12 +33,19 @@ export async function getProfile(userId) {
   return data
 }
 
-export async function consumeCredit(userId, currentCredits) {
-  const { error } = await supabaseAdmin
-    .from('profiles')
-    .update({ ai_credits: currentCredits - 1 })
-    .eq('id', userId)
+// Atomic decrement via Postgres function (see supabase/security-patch-001.sql).
+// Returns remaining credits, or -1 if the user had none left.
+export async function consumeCredit(userId) {
+  const { data, error } = await supabaseAdmin.rpc('consume_ai_credit', { uid: userId })
   if (error) throw new Error('Could not update AI credits')
+  return data
+}
+
+// Caps free-text fields so a malicious client can't pump huge prompts
+// (token-cost abuse) through the OpenAI-backed functions.
+export function capString(value, max) {
+  if (typeof value !== 'string') return ''
+  return value.slice(0, max)
 }
 
 export async function logGeneration(userId, type, input, output) {

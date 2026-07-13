@@ -1,4 +1,4 @@
-import { getUserFromRequest, getProfile, consumeCredit, logGeneration, supabaseAdmin } from './_supabaseAdmin.js'
+import { getUserFromRequest, getProfile, consumeCredit, logGeneration, supabaseAdmin, capString } from './_supabaseAdmin.js'
 import { callOpenAI } from './_openai.js'
 
 export const handler = async (event) => {
@@ -18,7 +18,13 @@ export const handler = async (event) => {
       }
     }
 
-    const { platform, content, hook, cta, hashtags, postId } = JSON.parse(event.body || '{}')
+    const body = JSON.parse(event.body || '{}')
+    const platform = capString(body.platform, 20)
+    const content = capString(body.content, 3000)
+    const hook = capString(body.hook, 300)
+    const cta = capString(body.cta, 300)
+    const hashtags = capString(body.hashtags, 500)
+    const postId = typeof body.postId === 'string' ? body.postId : null
     if (!platform || !content) {
       return { statusCode: 400, body: JSON.stringify({ error: 'Platform and post content are required.' }) }
     }
@@ -39,7 +45,7 @@ Score this post before it gets published.`
 
     const result = await callOpenAI({ system, user: user_prompt, maxTokens: 500 })
 
-    await consumeCredit(user.id, profile.ai_credits)
+    const remaining = await consumeCredit(user.id)
     await logGeneration(user.id, 'score', { platform, content, hook, cta, hashtags }, result)
 
     if (postId) {
@@ -52,7 +58,7 @@ Score this post before it gets published.`
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ ...result, creditsRemaining: profile.ai_credits - 1 }),
+      body: JSON.stringify({ ...result, creditsRemaining: Math.max(remaining, 0) }),
     }
   } catch (err) {
     return { statusCode: 500, body: JSON.stringify({ error: err.message || 'Unexpected error' }) }

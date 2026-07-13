@@ -1,20 +1,112 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { format, isThisMonth, isFuture } from 'date-fns'
 import {
-  Plus,
-  Sparkles,
-  CalendarDays,
-  Clock,
-  Gauge,
-  ArrowRight,
-} from 'lucide-react'
+  format,
+  subDays,
+  isSameDay,
+  isFuture,
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  eachDayOfInterval,
+  isSameMonth,
+  isToday,
+} from 'date-fns'
+import { Plus, Sparkles, Gauge, TrendingUp, ArrowUpRight, CalendarDays } from 'lucide-react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
-import StatCard from '../components/dashboard/StatCard'
+import { PLATFORMS, platformById } from '../lib/platforms'
 import PlatformIcon from '../lib/platformIcons'
-import { platformById } from '../lib/platforms'
 import PostFormModal from '../components/calendar/PostFormModal'
+
+const CHART_DAYS = 15
+
+function ActivityChart({ posts }) {
+  const days = useMemo(() => {
+    const today = new Date()
+    return Array.from({ length: CHART_DAYS }, (_, i) => {
+      const day = subDays(today, CHART_DAYS - 1 - i)
+      const count = posts.filter((p) => isSameDay(new Date(p.scheduled_at), day)).length
+      return { day, count }
+    })
+  }, [posts])
+
+  const max = Math.max(...days.map((d) => d.count), 4)
+
+  return (
+    <div>
+      <div className="flex h-40 items-end gap-[6px] sm:gap-2">
+        {days.map(({ day, count }) => (
+          <div key={day.toISOString()} className="group relative flex h-full flex-1 flex-col items-center justify-end">
+            <div className="pointer-events-none absolute -top-9 z-10 hidden whitespace-nowrap rounded-lg bg-slate-900 px-2 py-1 text-[11px] font-medium text-white group-hover:block">
+              {count} {count === 1 ? 'post' : 'posts'} · {format(day, 'd MMM')}
+            </div>
+            <div
+              className={`w-full max-w-[18px] rounded-t transition-colors ${
+                count > 0 ? 'bg-primary group-hover:bg-primary-600' : 'bg-slate-100'
+              }`}
+              style={{ height: `${count > 0 ? Math.max((count / max) * 100, 8) : 4}%` }}
+            />
+          </div>
+        ))}
+      </div>
+      <div className="mt-2 flex justify-between text-[11px] text-slate-400">
+        <span>{format(subDays(new Date(), CHART_DAYS - 1), 'd MMM')}</span>
+        <span>Today</span>
+      </div>
+    </div>
+  )
+}
+
+function MiniCalendar({ posts }) {
+  const today = new Date()
+  const gridStart = startOfWeek(startOfMonth(today))
+  const gridEnd = endOfWeek(endOfMonth(today))
+  const days = eachDayOfInterval({ start: gridStart, end: gridEnd })
+
+  return (
+    <div>
+      <div className="mb-3 flex items-center justify-between">
+        <p className="font-semibold text-slate-900">{format(today, 'MMMM yyyy')}</p>
+        <Link to="/app/calendar" className="text-xs font-medium text-primary hover:text-primary-700">
+          Open
+        </Link>
+      </div>
+      <div className="grid grid-cols-7 gap-y-1 text-center">
+        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
+          <span key={i} className="text-[11px] font-semibold text-accent">
+            {d}
+          </span>
+        ))}
+        {days.map((day) => {
+          const hasPosts = posts.some((p) => isSameDay(new Date(p.scheduled_at), day))
+          const inMonth = isSameMonth(day, today)
+          return (
+            <Link
+              to="/app/calendar"
+              key={day.toISOString()}
+              className="flex flex-col items-center gap-0.5 py-0.5"
+            >
+              <span
+                className={`flex h-6 w-6 items-center justify-center rounded-full text-xs ${
+                  isToday(day)
+                    ? 'bg-primary font-semibold text-white'
+                    : inMonth
+                    ? 'text-slate-600 hover:bg-slate-100'
+                    : 'text-slate-300'
+                }`}
+              >
+                {format(day, 'd')}
+              </span>
+              <span className={`h-1 w-1 rounded-full ${hasPosts ? 'bg-accent' : 'bg-transparent'}`} />
+            </Link>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 
 export default function Dashboard() {
   const { user, profile } = useAuth()
@@ -30,7 +122,7 @@ export default function Dashboard() {
       .select('*')
       .eq('user_id', user.id)
       .order('scheduled_at', { ascending: false })
-      .limit(50)
+      .limit(500)
     if (!error) setPosts(data || [])
     setLoading(false)
   }, [user])
@@ -42,162 +134,182 @@ export default function Dashboard() {
   const upcoming = posts
     .filter((p) => isFuture(new Date(p.scheduled_at)) && p.status !== 'published')
     .sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at))
-    .slice(0, 5)
+    .slice(0, 4)
 
-  const recent = [...posts]
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-    .slice(0, 5)
+  const scored = posts.filter((p) => typeof p.score === 'number')
+  const avgScore = scored.length
+    ? Math.round(scored.reduce((sum, p) => sum + p.score, 0) / scored.length)
+    : null
 
-  const postsThisMonth = posts.filter((p) => isThisMonth(new Date(p.scheduled_at))).length
-  const publishedCount = posts.filter((p) => p.status === 'published').length
-
+  const countFor = (platformId) => posts.filter((p) => p.platform === platformId).length
   const firstName = profile?.full_name?.split(' ')[0] || 'there'
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h2 className="text-xl font-bold text-slate-900">Welcome back, {firstName} 👋</h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Here's what's happening with your content today.
-          </p>
+          <h2 className="text-xl font-bold text-slate-900">Hi {firstName} 👋</h2>
+          <p className="mt-0.5 text-sm text-slate-500">Here's your content at a glance.</p>
         </div>
-        <button onClick={() => setModalOpen(true)} className="btn-accent w-fit">
+        <button onClick={() => setModalOpen(true)} className="btn-accent w-fit rounded-2xl">
           <Plus className="h-4 w-4" />
           Create new post
         </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard icon={Sparkles} label="AI credits remaining" value={profile?.ai_credits ?? 0} hint="Resets on upgrade" accent />
-        <StatCard icon={CalendarDays} label="Posts this month" value={postsThisMonth} hint="Across all platforms" />
-        <StatCard icon={Clock} label="Upcoming posts" value={upcoming.length} hint="Scheduled ahead" />
-        <StatCard icon={Gauge} label="Published posts" value={publishedCount} hint="All time" />
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="card p-5 lg:col-span-2">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-semibold text-slate-900">Content calendar — coming up</h3>
-            <Link to="/app/calendar" className="flex items-center gap-1 text-sm font-medium text-primary hover:text-primary-700">
-              Open calendar <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_320px]">
+        {/* Main column */}
+        <div className="space-y-5 min-w-0">
+          {/* Platform cards */}
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+            {PLATFORMS.map((p) => (
+              <Link
+                to="/app/calendar"
+                key={p.id}
+                className="card group p-4 transition-shadow hover:shadow-float"
+              >
+                <div
+                  className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl text-white"
+                  style={{ backgroundColor: p.color }}
+                >
+                  <PlatformIcon platform={p.id} className="h-4 w-4" />
+                </div>
+                <p className="text-2xl font-bold text-slate-900">{loading ? '—' : countFor(p.id)}</p>
+                <p className="truncate text-xs text-slate-400">Posts</p>
+              </Link>
+            ))}
           </div>
 
-          {loading ? (
-            <p className="py-8 text-center text-sm text-slate-400">Loading...</p>
-          ) : upcoming.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 py-10 text-center">
-              <CalendarDays className="h-8 w-8 text-slate-300" />
-              <p className="text-sm text-slate-500">No upcoming posts scheduled yet.</p>
-              <button onClick={() => setModalOpen(true)} className="btn-primary">
-                <Plus className="h-4 w-4" />
-                Schedule your first post
-              </button>
+          {/* Activity chart */}
+          <div className="card p-6">
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-slate-900">Posting activity</h3>
+                <p className="text-xs text-slate-400">Posts planned per day, last {CHART_DAYS} days</p>
+              </div>
+              <Link
+                to="/app/calendar"
+                className="flex items-center gap-1 rounded-xl bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100"
+              >
+                <CalendarDays className="h-3.5 w-3.5" />
+                Calendar
+              </Link>
             </div>
-          ) : (
-            <ul className="divide-y divide-slate-100">
-              {upcoming.map((post) => {
-                const platform = platformById(post.platform)
-                return (
-                  <li key={post.id} className="flex items-center gap-3 py-3">
-                    <div
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-white"
-                      style={{ backgroundColor: platform?.color }}
-                    >
-                      <PlatformIcon platform={post.platform} className="h-4 w-4" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-slate-900">
-                        {post.title || post.content || 'Untitled post'}
-                      </p>
-                      <p className="text-xs text-slate-500">
-                        {format(new Date(post.scheduled_at), "EEE d MMM, h:mm a")}
-                      </p>
-                    </div>
-                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium capitalize text-slate-600">
-                      {post.status}
-                    </span>
-                  </li>
-                )
-              })}
-            </ul>
-          )}
-        </div>
+            <ActivityChart posts={posts} />
+          </div>
 
-        <div className="card p-5">
-          <h3 className="mb-4 font-semibold text-slate-900">Quick actions</h3>
-          <div className="space-y-2">
-            <Link to="/app/captions" className="flex items-center gap-3 rounded-xl border border-slate-100 p-3 hover:bg-slate-50">
-              <Sparkles className="h-[18px] w-[18px] text-primary" />
-              <div>
-                <p className="text-sm font-medium text-slate-900">Generate a caption</p>
-                <p className="text-xs text-slate-500">AI hook, hashtags & CTA</p>
+          {/* Metric + quick action cards */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="card bg-gradient-to-br from-primary-700 to-primary-900 p-5 text-white">
+              <div className="flex items-center gap-2 text-primary-100">
+                <Sparkles className="h-4 w-4" />
+                <p className="text-sm font-medium">AI credits</p>
               </div>
-            </Link>
-            <Link to="/app/post-score" className="flex items-center gap-3 rounded-xl border border-slate-100 p-3 hover:bg-slate-50">
-              <Gauge className="h-[18px] w-[18px] text-primary" />
-              <div>
-                <p className="text-sm font-medium text-slate-900">Score a post</p>
-                <p className="text-xs text-slate-500">Check before you publish</p>
+              <p className="mt-3 text-3xl font-bold">{profile?.ai_credits ?? 0}</p>
+              <Link
+                to="/app/plans"
+                className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary-100 hover:text-white"
+              >
+                Get more <ArrowUpRight className="h-3 w-3" />
+              </Link>
+            </div>
+
+            <div className="card bg-gradient-to-br from-accent-500 to-accent-700 p-5 text-white">
+              <div className="flex items-center gap-2 text-accent-100">
+                <Gauge className="h-4 w-4" />
+                <p className="text-sm font-medium">Avg post score</p>
               </div>
-            </Link>
-            <Link to="/app/trends" className="flex items-center gap-3 rounded-xl border border-slate-100 p-3 hover:bg-slate-50">
-              <CalendarDays className="h-[18px] w-[18px] text-primary" />
-              <div>
-                <p className="text-sm font-medium text-slate-900">See trending topics</p>
-                <p className="text-xs text-slate-500">Trend radar for your niche</p>
+              <p className="mt-3 text-3xl font-bold">{avgScore ?? '—'}</p>
+              <Link
+                to="/app/post-score"
+                className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-accent-100 hover:text-white"
+              >
+                Score a post <ArrowUpRight className="h-3 w-3" />
+              </Link>
+            </div>
+
+            <Link to="/app/trends" className="card group p-5 transition-shadow hover:shadow-float">
+              <div className="flex items-center gap-2 text-slate-400">
+                <TrendingUp className="h-4 w-4" />
+                <p className="text-sm font-medium">Trend Radar</p>
               </div>
+              <p className="mt-3 text-sm text-slate-600">
+                See what's trending in Nigeria for your niche today.
+              </p>
+              <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary">
+                Scan trends <ArrowUpRight className="h-3 w-3" />
+              </span>
             </Link>
           </div>
         </div>
-      </div>
 
-      <div className="card p-5">
-        <h3 className="mb-4 font-semibold text-slate-900">Recent posts</h3>
-        {loading ? (
-          <p className="py-6 text-center text-sm text-slate-400">Loading...</p>
-        ) : recent.length === 0 ? (
-          <p className="py-6 text-center text-sm text-slate-500">No posts yet. Create your first one!</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="text-xs uppercase text-slate-400">
-                  <th className="pb-2 font-medium">Platform</th>
-                  <th className="pb-2 font-medium">Content</th>
-                  <th className="pb-2 font-medium">Date</th>
-                  <th className="pb-2 font-medium">Status</th>
-                  <th className="pb-2 font-medium">Score</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {recent.map((post) => (
-                  <tr key={post.id}>
-                    <td className="py-2.5">
-                      <div className="flex items-center gap-1.5 capitalize text-slate-700">
-                        <PlatformIcon platform={post.platform} className="h-3.5 w-3.5" />
-                        {post.platform}
+        {/* Right rail */}
+        <div className="space-y-5">
+          <div className="card p-5">
+            <MiniCalendar posts={posts} />
+          </div>
+
+          <div className="card p-5">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="font-semibold text-slate-900">Coming up</h3>
+              <Link to="/app/calendar" className="text-xs font-medium text-primary hover:text-primary-700">
+                See all
+              </Link>
+            </div>
+            {loading ? (
+              <p className="py-6 text-center text-sm text-slate-400">Loading…</p>
+            ) : upcoming.length === 0 ? (
+              <div className="py-4 text-center">
+                <p className="text-sm text-slate-400">Nothing scheduled yet.</p>
+                <button
+                  onClick={() => setModalOpen(true)}
+                  className="mt-3 text-sm font-medium text-primary hover:text-primary-700"
+                >
+                  + Schedule a post
+                </button>
+              </div>
+            ) : (
+              <ul className="space-y-2">
+                {upcoming.map((post) => {
+                  const platform = platformById(post.platform)
+                  return (
+                    <li key={post.id} className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3">
+                      <div
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white"
+                        style={{ backgroundColor: platform?.color }}
+                      >
+                        <PlatformIcon platform={post.platform} className="h-4 w-4" />
                       </div>
-                    </td>
-                    <td className="max-w-xs truncate py-2.5 text-slate-600">
-                      {post.title || post.content || '—'}
-                    </td>
-                    <td className="py-2.5 text-slate-500">
-                      {format(new Date(post.scheduled_at), 'd MMM yyyy')}
-                    </td>
-                    <td className="py-2.5">
-                      <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium capitalize text-slate-600">
-                        {post.status}
-                      </span>
-                    </td>
-                    <td className="py-2.5 text-slate-500">{post.score ?? '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-slate-800">
+                          {post.title || post.content || 'Untitled post'}
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          {format(new Date(post.scheduled_at), 'EEE d MMM · h:mm a')}
+                        </p>
+                      </div>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
           </div>
-        )}
+
+          <div className="card p-5">
+            <h3 className="mb-3 font-semibold text-slate-900">Quick actions</h3>
+            <div className="space-y-1.5">
+              <Link to="/app/captions" className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50">
+                <Sparkles className="h-4 w-4 text-primary" /> Generate a caption
+              </Link>
+              <Link to="/app/media-kit" className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50">
+                <ArrowUpRight className="h-4 w-4 text-primary" /> Build your media kit
+              </Link>
+              <Link to="/app/monetization" className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50">
+                <Gauge className="h-4 w-4 text-primary" /> Monetization checklist
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
 
       <PostFormModal open={modalOpen} onClose={() => setModalOpen(false)} onSaved={fetchPosts} />
