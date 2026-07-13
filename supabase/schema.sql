@@ -15,6 +15,7 @@ create table if not exists public.profiles (
   avatar_url text,
   plan text not null default 'free' check (plan in ('free', 'starter', 'pro', 'business', 'agency')),
   ai_credits int not null default 20,
+  platforms text[] not null default array['instagram','facebook','tiktok','youtube','x','whatsapp'],
   onboarded boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -53,7 +54,10 @@ create trigger on_auth_user_created
 create table if not exists public.posts (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users (id) on delete cascade,
-  platform text not null check (platform in ('instagram', 'facebook', 'tiktok', 'youtube', 'x', 'whatsapp')),
+  platform text not null check (platform in (
+    'instagram','facebook','tiktok','youtube','x','whatsapp',
+    'linkedin','threads','pinterest','telegram','snapchat'
+  )),
   title text,
   content text,
   hashtags text,

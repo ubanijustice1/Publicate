@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { X, Loader2, Trash2 } from 'lucide-react'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
-import { PLATFORMS } from '../../lib/platforms'
+import { useUserPlatforms } from '../../hooks/useUserPlatforms'
 import PlatformIcon from '../../lib/platformIcons'
 
 const emptyForm = {
@@ -26,6 +26,7 @@ function toLocalInputValue(date) {
 
 export default function PostFormModal({ open, onClose, onSaved, initialDate, post, prefill }) {
   const { user } = useAuth()
+  const userPlatforms = useUserPlatforms()
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -126,8 +127,8 @@ export default function PostFormModal({ open, onClose, onSaved, initialDate, pos
 
           <div>
             <label className="label">Platform</label>
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-              {PLATFORMS.map((p) => (
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+              {userPlatforms.map((p) => (
                 <button
                   type="button"
                   key={p.id}

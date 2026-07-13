@@ -13,12 +13,14 @@ import {
   isSameMonth,
   isToday,
 } from 'date-fns'
-import { Plus, Sparkles, Gauge, TrendingUp, ArrowUpRight, CalendarDays } from 'lucide-react'
+import { Plus, Sparkles, Gauge, TrendingUp, ArrowUpRight, CalendarDays, SlidersHorizontal } from 'lucide-react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
-import { PLATFORMS, platformById } from '../lib/platforms'
+import { platformById } from '../lib/platforms'
+import { useUserPlatforms } from '../hooks/useUserPlatforms'
 import PlatformIcon from '../lib/platformIcons'
 import PostFormModal from '../components/calendar/PostFormModal'
+import ManagePlatformsModal from '../components/dashboard/ManagePlatformsModal'
 
 const CHART_DAYS = 15
 
@@ -110,9 +112,11 @@ function MiniCalendar({ posts }) {
 
 export default function Dashboard() {
   const { user, profile } = useAuth()
+  const userPlatforms = useUserPlatforms()
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
+  const [platformsOpen, setPlatformsOpen] = useState(false)
 
   const fetchPosts = useCallback(async () => {
     if (!user) return
@@ -162,7 +166,7 @@ export default function Dashboard() {
         <div className="space-y-5 min-w-0">
           {/* Platform cards */}
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-            {PLATFORMS.map((p) => (
+            {userPlatforms.map((p) => (
               <Link
                 to="/app/calendar"
                 key={p.id}
@@ -178,6 +182,13 @@ export default function Dashboard() {
                 <p className="truncate text-xs text-slate-400">Posts</p>
               </Link>
             ))}
+            <button
+              onClick={() => setPlatformsOpen(true)}
+              className="flex min-h-[110px] flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-slate-200 text-slate-400 transition-colors hover:border-primary hover:text-primary"
+            >
+              <SlidersHorizontal className="h-5 w-5" />
+              <span className="text-xs font-medium">Add / remove</span>
+            </button>
           </div>
 
           {/* Activity chart */}
@@ -313,6 +324,7 @@ export default function Dashboard() {
       </div>
 
       <PostFormModal open={modalOpen} onClose={() => setModalOpen(false)} onSaved={fetchPosts} />
+      <ManagePlatformsModal open={platformsOpen} onClose={() => setPlatformsOpen(false)} />
     </div>
   )
 }

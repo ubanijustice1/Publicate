@@ -1,4 +1,16 @@
-import { Instagram, Facebook, Youtube, Twitter, MessageCircle, Music2 } from 'lucide-react'
+import {
+  Instagram,
+  Facebook,
+  Youtube,
+  Twitter,
+  MessageCircle,
+  Music2,
+  Linkedin,
+  AtSign,
+  Pin,
+  Send,
+  Ghost,
+} from 'lucide-react'
 
 const ICONS = {
   instagram: Instagram,
@@ -7,6 +19,11 @@ const ICONS = {
   youtube: Youtube,
   x: Twitter,
   whatsapp: MessageCircle,
+  linkedin: Linkedin,
+  threads: AtSign,
+  pinterest: Pin,
+  telegram: Send,
+  snapchat: Ghost,
 }
 
 export default function PlatformIcon({ platform, className = 'w-4 h-4' }) {

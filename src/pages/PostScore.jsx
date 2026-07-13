@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Gauge, Loader2, Sparkles } from 'lucide-react'
 import { scorePost } from '../lib/api'
-import { PLATFORMS } from '../lib/platforms'
+import { useUserPlatforms } from '../hooks/useUserPlatforms'
 import { useAuth } from '../context/AuthContext'
 import PlatformIcon from '../lib/platformIcons'
 import ScoreGauge from '../components/ui/ScoreGauge'
@@ -15,6 +15,7 @@ const BREAKDOWN_LABELS = {
 
 export default function PostScore() {
   const { refreshProfile } = useAuth()
+  const userPlatforms = useUserPlatforms()
   const [form, setForm] = useState({
     platform: 'instagram',
     hook: '',
@@ -66,8 +67,8 @@ export default function PostScore() {
 
           <div>
             <label className="label">Platform</label>
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-              {PLATFORMS.map((p) => (
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+              {userPlatforms.map((p) => (
                 <button
                   type="button"
                   key={p.id}

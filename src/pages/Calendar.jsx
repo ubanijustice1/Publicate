@@ -13,18 +13,25 @@ import {
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
-import { PLATFORMS } from '../lib/platforms'
+import { useUserPlatforms } from '../hooks/useUserPlatforms'
 import MonthView from '../components/calendar/MonthView'
 import WeekView from '../components/calendar/WeekView'
 import PostFormModal from '../components/calendar/PostFormModal'
 
 export default function Calendar() {
   const { user } = useAuth()
+  const userPlatforms = useUserPlatforms()
   const [view, setView] = useState('month')
   const [currentDate, setCurrentDate] = useState(new Date())
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
-  const [activePlatforms, setActivePlatforms] = useState(PLATFORMS.map((p) => p.id))
+  const [activePlatforms, setActivePlatforms] = useState(() => userPlatforms.map((p) => p.id))
+
+  // Keep filters in sync when the user adds/removes platforms.
+  const platformKey = userPlatforms.map((p) => p.id).join(',')
+  useEffect(() => {
+    setActivePlatforms(platformKey.split(','))
+  }, [platformKey])
 
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState(null)
@@ -124,7 +131,7 @@ export default function Calendar() {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {PLATFORMS.map((p) => (
+        {userPlatforms.map((p) => (
           <button
             key={p.id}
             onClick={() => togglePlatform(p.id)}

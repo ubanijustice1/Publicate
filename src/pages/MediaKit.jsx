@@ -3,6 +3,7 @@ import { FileBadge, Loader2, Download, Plus, Trash2, Save, ImagePlus } from 'luc
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
 import { PLATFORMS, NICHES } from '../lib/platforms'
+import { useUserPlatforms } from '../hooks/useUserPlatforms'
 import { generateMediaKitPdf } from '../lib/pdf'
 
 const emptyKit = {
@@ -13,12 +14,13 @@ const emptyKit = {
   email: '',
   phone: '',
   photoDataUrl: '',
-  stats: PLATFORMS.map((p) => ({ platform: p.id, handle: '', followers: '', engagement: '' })),
+  stats: [],
   rates: [{ service: 'Single feed post', price: '' }],
 }
 
 export default function MediaKit() {
   const { user, profile } = useAuth()
+  const userPlatforms = useUserPlatforms()
   const [kit, setKit] = useState(emptyKit)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -32,14 +34,30 @@ export default function MediaKit() {
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle()
-      if (data?.data) {
-        setKit({ ...emptyKit, ...data.data })
-      } else {
-        setKit({ ...emptyKit, fullName: profile?.full_name || '' })
-      }
+
+      // Stats rows follow the user's chosen platforms, keeping any saved values.
+      const saved = data?.data || {}
+      const savedStats = saved.stats || []
+      const stats = userPlatforms.map(
+        (p) =>
+          savedStats.find((s) => s.platform === p.id) || {
+            platform: p.id,
+            handle: '',
+            followers: '',
+            engagement: '',
+          }
+      )
+
+      setKit({
+        ...emptyKit,
+        fullName: profile?.full_name || '',
+        ...saved,
+        stats,
+      })
       setLoading(false)
     }
     load()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, profile])
 
   function updateStat(platformId, field, value) {

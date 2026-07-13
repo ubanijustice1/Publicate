@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import { Sparkles, Loader2, Copy, Check, CalendarPlus } from 'lucide-react'
 import { generateCaption } from '../lib/api'
-import { PLATFORMS, NICHES, TONES } from '../lib/platforms'
+import { NICHES, TONES } from '../lib/platforms'
+import { useUserPlatforms } from '../hooks/useUserPlatforms'
 import { useAuth } from '../context/AuthContext'
 import PlatformIcon from '../lib/platformIcons'
 import PostFormModal from '../components/calendar/PostFormModal'
 
 export default function CaptionGenerator() {
   const { refreshProfile } = useAuth()
+  const userPlatforms = useUserPlatforms()
   const [form, setForm] = useState({
     platform: 'instagram',
     niche: NICHES[0],
@@ -81,8 +83,8 @@ export default function CaptionGenerator() {
 
           <div>
             <label className="label">Platform</label>
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-              {PLATFORMS.map((p) => (
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+              {userPlatforms.map((p) => (
                 <button
                   type="button"
                   key={p.id}
