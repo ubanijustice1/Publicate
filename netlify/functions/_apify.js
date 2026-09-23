@@ -48,9 +48,9 @@ export async function getGoogleTrends(selectedTopic) {
   const run = await client.actor(GOOGLE_TRENDS_ACTOR).call({
     searchTerms: [selectedTopic],
     isMultiple: false,
-    timeRange: 'today 3-m',
-    geo: 'ng',
-    viewedFrom: 'ng',
+    timeRange: "today 3-m",
+    geo: "NG",
+    viewedFrom: "NG",
     skipDebugScreen: false,
     maxItems: 0,
     maxConcurrency: 1,
