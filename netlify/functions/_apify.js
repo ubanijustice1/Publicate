@@ -44,6 +44,9 @@ export async function getGoogleTrends(selectedTopic) {
   const token = process.env.APIFY_API_TOKEN
   if (!token) throw new Error('Trend data provider is not configured')
 
+  const selectedTopicEncoded = encodeUriComponent(selectedTopic);
+  const timeRangeEncoded = encodeUriComponent(timeRange);
+
   const client = new ApifyClient({ token })
   const run = await client.actor(GOOGLE_TRENDS_ACTOR).call({
     searchTerms: [selectedTopic],
@@ -54,7 +57,7 @@ export async function getGoogleTrends(selectedTopic) {
     skipDebugScreen: false,
     startUrls: [
         {
-            "url": `https://trends.google.com/trends/explore?date=${encodeUriComponent(timeRange)}&q=${encodeUriComponent(selectedTopic)}`
+            "url": `https://trends.google.com/trends/explore?date=${timeRangeEncoded}&q=${selectedTopicEncoded}`
         }
     ],
     maxItems: 5,
