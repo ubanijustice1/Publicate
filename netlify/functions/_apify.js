@@ -46,21 +46,21 @@ export async function getGoogleTrends(selectedTopic) {
 
   const client = new ApifyClient({ token })
   const run = await client.actor(GOOGLE_TRENDS_ACTOR).call({
-    searchTerms: [selectedTopic],
-    isMultiple: false,
-    timeRange: "today 3-m",
-    geo: "NG",
-    viewedFrom: "ng",
-    skipDebugScreen: false,
-    startUrls: [
+    "searchTerms": [selectedTopic],
+    "isMultiple": false,
+    "timeRange": "today 3-m",
+    "geo": "NG",
+    "viewedFrom": "ng",
+    "skipDebugScreen": false,
+    "startUrls": [
         {
             "url": "https://trends.google.com/trends/explore?date=" + "today%203-m" + "&q=" + selectedTopic
         }
     ],
-    maxItems: 5,
-    maxConcurrency: 1,
-    maxRequestRetries: 3,
-    pageLoadTimeoutSecs: 120,
+    "maxItems": 5,
+    "maxConcurrency": 1,
+    "maxRequestRetries": 3,
+    "pageLoadTimeoutSecs": 120,
   })
 
   const { items } = await client.dataset(run.defaultDatasetId).listItems()
@@ -70,44 +70,6 @@ export async function getGoogleTrends(selectedTopic) {
     throw new Error('Google Trends did not return enough related searches for this topic')
   }
 
-  return relatedTerms
-
-
-
-
-// Prepare Actor input
-const input = {
-    "searchTerms": [
-        "web scraping"
-    ],
-    "isMultiple": false,
-    "timeRange": "",
-    "geo": "",
-    "viewedFrom": "",
-    "skipDebugScreen": false,
-    "startUrls": [
-        {
-            "url": "https://trends.google.com/trends/explore?date=today%2012-m&q=web%20scraping"
-        }
-    ],
-    "category": "",
-    "maxItems": 0,
-    "maxConcurrency": 10,
-    "maxRequestRetries": 7,
-    "pageLoadTimeoutSecs": 180
-};
-
-(async () => {
-    // Run the Actor and wait for it to finish
-    const run = await client.actor("zhGUfu0Y1suDggS2u").call(input);
-
-    // Fetch and print Actor results from the run's dataset (if any)
-    console.log('Results from dataset');
-    const { items } = await client.dataset(run.defaultDatasetId).listItems();
-    items.forEach((item) => {
-        console.dir(item);
-    });
-})();
-
+  return relatedTerms;
 
 }
