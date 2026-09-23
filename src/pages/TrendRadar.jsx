@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { TrendingUp, Loader2, Lightbulb, ArrowRight } from 'lucide-react'
+import { TrendingUp, Loader2, Lightbulb, ArrowRight, BarChart3 } from 'lucide-react'
 import { getTrendRadar } from '../lib/api'
 import { NICHES } from '../lib/platforms'
 import { useAuth } from '../context/AuthContext'
@@ -89,6 +89,13 @@ export default function TrendRadar() {
                 <span className="rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-semibold capitalize text-primary-700">
                   {trend.suggested_platform}
                 </span>
+                {trend.formattedScore && (
+                  <span className="flex items-center gap-1 text-[11px] font-medium text-slate-400" title="Relative Google Trends score in Nigeria over the past 90 days">
+                    <BarChart3 className="h-3.5 w-3.5" />
+                    {trend.trendType === 'rising' ? 'Rising ' : 'Top '}
+                    {trend.formattedScore}
+                  </span>
+                )}
               </div>
               <h3 className="font-semibold text-slate-900">{trend.title}</h3>
               <p className="mt-1.5 text-sm text-slate-600">{trend.summary}</p>
@@ -114,6 +121,17 @@ export default function TrendRadar() {
                     </span>
                   ))}
                 </div>
+              )}
+
+              {trend.sourceUrl && (
+                <a
+                  href={trend.sourceUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 text-xs font-medium text-slate-400 hover:text-primary"
+                >
+                  View on Google Trends
+                </a>
               )}
 
               <a
