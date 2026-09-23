@@ -54,7 +54,7 @@ export async function getGoogleTrends(selectedTopic) {
     skipDebugScreen: false,
     startUrls: [
         {
-            "url": `https://trends.google.com/trends/explore?date=${timeRange}&q=${selectedTopic}`
+            "url": `https://trends.google.com/trends/explore?date=today%203-m&q=${selectedTopic}`
         }
     ],
     maxItems: 5,
