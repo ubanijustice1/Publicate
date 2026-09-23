@@ -1,7 +1,7 @@
 import { ApifyClient } from 'apify-client'
 
 const GOOGLE_TRENDS_ACTOR = 'zhGUfu0Y1suDggS2u'
-const RESULT_LIMIT = 5
+const RESULT_LIMIT = 3
 
 function cleanText(value, maxLength = 120) {
   return typeof value === 'string' ? value.trim().slice(0, maxLength) : ''
@@ -54,7 +54,7 @@ export async function getGoogleTrends(selectedTopic) {
     skipDebugScreen: false,
     startUrls: [
         {
-            "url": `https://trends.google.com/trends/explore?date=today%203-m&q=${selectedTopic}`
+            "url": "https://trends.google.com/trends/explore?date=" + "today%203-m" + "&q=" + selectedTopic
         }
     ],
     maxItems: 5,
@@ -71,4 +71,43 @@ export async function getGoogleTrends(selectedTopic) {
   }
 
   return relatedTerms
+
+
+
+
+// Prepare Actor input
+const input = {
+    "searchTerms": [
+        "web scraping"
+    ],
+    "isMultiple": false,
+    "timeRange": "",
+    "geo": "",
+    "viewedFrom": "",
+    "skipDebugScreen": false,
+    "startUrls": [
+        {
+            "url": "https://trends.google.com/trends/explore?date=today%2012-m&q=web%20scraping"
+        }
+    ],
+    "category": "",
+    "maxItems": 0,
+    "maxConcurrency": 10,
+    "maxRequestRetries": 7,
+    "pageLoadTimeoutSecs": 180
+};
+
+(async () => {
+    // Run the Actor and wait for it to finish
+    const run = await client.actor("zhGUfu0Y1suDggS2u").call(input);
+
+    // Fetch and print Actor results from the run's dataset (if any)
+    console.log('Results from dataset');
+    const { items } = await client.dataset(run.defaultDatasetId).listItems();
+    items.forEach((item) => {
+        console.dir(item);
+    });
+})();
+
+
 }
