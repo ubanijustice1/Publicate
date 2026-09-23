@@ -52,6 +52,11 @@ export async function getGoogleTrends(selectedTopic) {
     geo: "NG",
     viewedFrom: "ng",
     skipDebugScreen: false,
+    startUrls: [
+        {
+            "url": `https://trends.google.com/trends/explore?date=${encodeUriComponent(timeRange)}&q=${encodeUriComponent(selectedTopic)}`
+        }
+    ],
     maxItems: 5,
     maxConcurrency: 1,
     maxRequestRetries: 3,
