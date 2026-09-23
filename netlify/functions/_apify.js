@@ -52,7 +52,7 @@ export async function getGoogleTrends(selectedTopic) {
     geo: "NG",
     viewedFrom: "ng",
     skipDebugScreen: false,
-    maxItems: 0,
+    maxItems: 5,
     maxConcurrency: 1,
     maxRequestRetries: 3,
     pageLoadTimeoutSecs: 120,
