@@ -50,7 +50,7 @@ export async function getGoogleTrends(selectedTopic) {
     isMultiple: false,
     timeRange: "today 3-m",
     geo: "NG",
-    viewedFrom: "NG",
+    viewedFrom: "ng",
     skipDebugScreen: false,
     maxItems: 0,
     maxConcurrency: 1,
