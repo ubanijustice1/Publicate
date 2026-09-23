@@ -82,3 +82,4 @@ Create one actionable content idea for each related search.`
     return { statusCode: 500, body: JSON.stringify({ error: err.message || 'Unexpected error' }) }
   }
 }
+
