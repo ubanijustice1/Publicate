@@ -1,7 +1,7 @@
 import { ApifyClient } from 'apify-client'
 
-const GOOGLE_TRENDS_ACTOR = 'DyNQEYDj9awfGQf9A'
-const RESULT_LIMIT = 3
+const GOOGLE_TRENDS_ACTOR = 'zhGUfu0Y1suDggS2u'
+const RESULT_LIMIT = 5
 
 function cleanText(value, maxLength = 120) {
   return typeof value === 'string' ? value.trim().slice(0, maxLength) : ''
