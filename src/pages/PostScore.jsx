@@ -3,6 +3,7 @@ import { Gauge, Loader2, Sparkles } from 'lucide-react'
 import { scorePost } from '../lib/api'
 import { useUserPlatforms } from '../hooks/useUserPlatforms'
 import { useAuth } from '../context/AuthContext'
+import RewardedAdCard from '../components/ads/RewardedAdCard'
 import PlatformIcon from '../lib/platformIcons'
 import ScoreGauge from '../components/ui/ScoreGauge'
 
@@ -14,7 +15,7 @@ const BREAKDOWN_LABELS = {
 }
 
 export default function PostScore() {
-  const { refreshProfile } = useAuth()
+  const { refreshProfile, profile } = useAuth()
   const userPlatforms = useUserPlatforms()
   const [form, setForm] = useState({
     platform: 'instagram',
@@ -64,6 +65,7 @@ export default function PostScore() {
           {error && (
             <div className="rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-red-600">{error}</div>
           )}
+          {profile && profile.ai_credits <= 0 && <RewardedAdCard variant="inline" />}
 
           <div>
             <label className="label">Platform</label>

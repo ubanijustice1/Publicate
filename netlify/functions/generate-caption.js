@@ -14,7 +14,7 @@ export const handler = async (event) => {
     if (profile.ai_credits <= 0) {
       return {
         statusCode: 402,
-        body: JSON.stringify({ error: 'You are out of AI credits. Upgrade your plan to get more.' }),
+        body: JSON.stringify({ error: 'You are out of AI credits. Watch 2 short ads to earn 1 free credit, or upgrade your plan.' }),
       }
     }
 

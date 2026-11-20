@@ -42,3 +42,11 @@ export function paystackInitialize(payload) {
 export function paystackVerify(payload) {
   return callFunction('paystack-verify', payload)
 }
+
+export function adRewardStart() {
+  return callFunction('ad-reward-start', {})
+}
+
+export function adRewardClaim(payload) {
+  return callFunction('ad-reward-claim', payload)
+}

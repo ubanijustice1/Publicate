@@ -21,6 +21,7 @@ import { useUserPlatforms } from '../hooks/useUserPlatforms'
 import PlatformIcon from '../lib/platformIcons'
 import PostFormModal from '../components/calendar/PostFormModal'
 import ManagePlatformsModal from '../components/dashboard/ManagePlatformsModal'
+import RewardedAdCard from '../components/ads/RewardedAdCard'
 
 const CHART_DAYS = 15
 
@@ -223,6 +224,7 @@ export default function Dashboard() {
               >
                 Get more <ArrowUpRight className="h-3 w-3" />
               </Link>
+              <RewardedAdCard variant="dark" />
             </div>
 
             <div className="card bg-gradient-to-br from-accent-500 to-accent-700 p-5 text-white">
