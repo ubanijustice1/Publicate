@@ -4,6 +4,7 @@ import { Check, Loader2, CreditCard, PartyPopper } from 'lucide-react'
 import { PLANS } from '../lib/plans'
 import { useAuth } from '../context/AuthContext'
 import { paystackInitialize, paystackVerify } from '../lib/api'
+import RewardedAdCard from '../components/ads/RewardedAdCard'
 
 export default function Plans() {
   const { profile, refreshProfile } = useAuth()
@@ -71,6 +72,8 @@ export default function Plans() {
       {error && (
         <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
       )}
+
+      <RewardedAdCard />
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
         {PLANS.map((plan) => {

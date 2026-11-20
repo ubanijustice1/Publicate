@@ -21,7 +21,8 @@ Social media management and creator growth platform for Nigerian creators, small
 6. Trend Radar — trending topics in Nigeria by niche
 7. Media Kit Generator — downloadable PDF
 8. Monetization Navigator — X / Facebook / YouTube payout checklists
-9. Subscription Plans — 5 NGN plans via Paystack (Free, Creator Starter ₦2,000, Creator Pro ₦5,000, Business ₦10,000, Agency ₦25,000)
+9. Rewarded ads — watch 2 Google ads to earn 1 AI credit (Google Ad Manager web rewarded ads)
+10. Subscription Plans — 5 NGN plans via Paystack (Free, Creator Starter ₦2,000, Creator Pro ₦5,000, Business ₦10,000, Agency ₦25,000)
 
 ## Local setup
 
@@ -62,6 +63,15 @@ netlify dev
 ```
 
 This serves the Vite app and the functions together on one port. Running `npm run dev` alone will start the frontend but AI/payment features will fail since the functions won't be reachable.
+
+## Rewarded ads (2 ads = 1 AI credit)
+
+Users can watch rewarded ads to earn credits from the Dashboard, the Plans page, and the AI tools when they run out of credits.
+
+1. Run [`supabase/patch-003-rewarded-ads.sql`](supabase/patch-003-rewarded-ads.sql) in the Supabase SQL Editor.
+2. Ads are served with Google Publisher Tag (Google Ad Manager). AdMob ad units (`ca-app-pub-…`) only serve inside native Android/iOS apps and cannot be used on the web.
+3. Create a **Rewarded** ad unit in [Google Ad Manager](https://admanager.google.com) and set its path in `VITE_GAM_REWARDED_AD_UNIT` (e.g. `/1234567/publicate_rewarded`). Until it is set, Google's test rewarded ad is shown.
+4. Limits (in `netlify/functions/_adRewards.js`): 20 rewarded views per user per 24 hours, and a reward can't be claimed less than 5 seconds after the ad session starts.
 
 ## Deployment (Netlify)
 

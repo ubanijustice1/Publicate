@@ -3,6 +3,7 @@ import { TrendingUp, Loader2, Lightbulb, ArrowRight } from 'lucide-react'
 import { getTrendRadar } from '../lib/api'
 import { NICHES } from '../lib/platforms'
 import { useAuth } from '../context/AuthContext'
+import RewardedAdCard from '../components/ads/RewardedAdCard'
 
 export default function TrendRadar() {
   const { refreshProfile, profile } = useAuth()
@@ -63,6 +64,11 @@ export default function TrendRadar() {
         {error && (
           <div className="mt-3 hidden rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-red-600 sm:block">
             {error}
+          </div>
+        )}
+        {profile && profile.ai_credits <= 0 && (
+          <div className="mt-3">
+            <RewardedAdCard variant="inline" />
           </div>
         )}
       </div>
